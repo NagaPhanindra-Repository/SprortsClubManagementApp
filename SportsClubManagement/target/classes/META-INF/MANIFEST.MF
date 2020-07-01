@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Implementation-Title: SportsClubManagement
+Implementation-Version: 0.0.1-SNAPSHOT
+Built-By: USER
+Implementation-Vendor-Id: com.RAVURI
+Build-Jdk: 1.8.0_251
+Implementation-URL: https://spring.io/projects/spring-boot/SportsClubM
+ anagement
+Created-By: Maven Integration for Eclipse
+Implementation-Vendor: Pivotal Software, Inc.
+

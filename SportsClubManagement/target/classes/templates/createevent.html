@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Create Event</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body>
+
+<!-- Navigation bar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed"
+					data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+					aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span> <span
+						class="icon-bar"></span> <span class="icon-bar"></span> <span
+						class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#" th:href="@{/}">FITNESS - HELATH - SPORTS CLUB</a>
+			</div>
+		</div>
+	</nav>
+<br>
+<br>
+  
+<!-- regestrion FORM -->
+
+<div class="container">
+		<div class="row">
+			<div class="col-md-6 col-md-offset-3">
+
+				<!-- success message -->
+				<div th:if="${param.success}">
+					<div class="alert alert-info">Your event is successfully creation
+						to our app! </div>
+				</div>
+
+				<h1>Complete the below details to Create Event</h1>
+
+				<form th:action="@{/createevent}" method="post" th:object="${event}">
+					<div class="form-group">
+						<label class="control-label" for="eventName"> Event Name </label>
+						<input id="eventName" class="form-control" th:field="*{eventName}"
+							required placeholder="Enter Event Name" autofocus="autofocus" />
+					</div>
+
+					<div class="form-group">
+						<label class="control-label" for="contactNumber"> contactNumber </label> <input
+							id="contactNumber" class="form-control" th:field="*{contactNumber}"
+							required placeholder="Enter Contact Number" autofocus="autofocus" />
+					</div>
+				 	
+
+					
+					<div class="form-group">
+						<label class="control-label" for="startTime"> Start Date and Time  </label> <input
+							id="startTime" class="form-control" type="text" th:field="*{startTime}"
+							required placeholder="Enter in DD/MM/YY HH:MM AM" autofocus="autofocus" />
+					</div>
+					
+					<div class="form-group">
+						<label class="control-label" for="endTime"> End Date and Time  </label> <input
+							id="endTime" class="form-control" type="text" th:field="*{endTime}"
+							required placeholder="Enter in DD/MM/YY HH:MM AM" autofocus="autofocus" />
+					</div>
+					
+					
+
+					<div class="form-group">
+						<button type="submit" class="btn btn-success">Create Event</button>
+						<span>Cancel and Go back to home page? <a href="/" th:href="@{/login}">Home
+								Page</a></span>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	
+	
+	   
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</body>
+</html>
