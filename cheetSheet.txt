@@ -1,0 +1,410 @@
+
+##########Card User Class ##########
+export class CardUser {
+    CreditedTo:string;
+    TransactionTime:string;
+    Amount:string;
+    Currency:string;
+constructor( CreditedTo1:string, TransactionTime1:string,Amount1:string,
+    Currency1:string){
+    this.CreditedTo=CreditedTo1;
+    this.TransactionTime=TransactionTime1;
+    this.Amount=Amount1;
+    this.Currency=Currency1;
+}
+
+}
+
+
+
+###########Gift Card Service ############
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { CardUser } from './card-user';
+import { Observable } from 'rxjs';
+
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class GiftCardServiceService {
+
+  //You Can use this service for getting transaction and 
+  constructor( private http: HttpClient) {
+
+   }
+   getTransactionList() : Observable<any>{
+    return this.http.get('http://localhost:7878/GiftCardManagement/api/v1/Transactions');
+  }
+
+}
+
+
+#############App moudle.ts################
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+//import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { LoginComponent } from './login/login.component';
+import { MenuComponent } from './menu/menu.component';
+import { GiftCardServiceService } from './gift-card-service.service';
+import { LogoutComponent } from './logout/logout.component';
+import { HomeComponent } from './home/home.component';
+import { HttpInterceptorService } from './http-interceptor.service';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AuthenticationService } from './login/auth.service';
+
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    LoginComponent,
+    MenuComponent,
+    LogoutComponent,
+    HomeComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    HttpClientModule,
+    FormsModule
+  ],
+  providers: [
+    GiftCardServiceService,
+    AuthenticationService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpInterceptorService,
+      multi: true
+    }
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+
+
+############menu component .html ############
+<header>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div><a href="#" class="navbar-brand">NAGA-PHANINDRA</a></div>
+        <ul class="navbar-nav navbar-collapse justify-content-end">
+            <li>
+                <a *ngIf="isLoggedIn" class="nav-link" href="/logout" (click)=handleLogout()>Logout</a>
+            </li>
+        </ul>
+    </nav>
+  </header>
+
+
+
+#############menu component.ts######
+import { Component, OnInit } from '@angular/core';
+import { AuthenticationService } from '../login/auth.service';
+import { ActivatedRoute, Router } from '@angular/router';
+
+@Component({
+  selector: 'app-menu',
+  templateUrl: './menu.component.html',
+  styleUrls: ['./menu.component.css']
+})
+export class MenuComponent implements OnInit {
+
+  isLoggedIn = false;
+
+  constructor(private route: ActivatedRoute,
+    private router: Router,
+    private authenticationService: AuthenticationService) { }
+
+  ngOnInit() {
+    this.isLoggedIn = this.authenticationService.isUserLoggedIn();
+    console.log('menu ->' + this.isLoggedIn);
+  }
+
+  handleLogout() {
+    this.authenticationService.logout();
+  }
+}
+
+
+################## Login component.html#########
+
+<div class="container col-lg-6">
+    <h1 class="text-center">Login</h1>
+    <div class="card">
+      <div class="card-body">
+        <form class="form-group">
+          <div class="alert alert-warning" *ngIf='invalidLogin'>{{errorMessage}}</div>
+          <div class="alert alert-success" *ngIf='loginSuccess'>{{successMessage}}</div>
+          <div class="form-group">
+            <label for="email">Card Number :</label>
+            <input type="text" class="form-control" id="username" [(ngModel)]="username" placeholder="Enter Card Number"
+              name="username">
+          </div>
+          <div class="form-group">
+            <label for="pwd">Internet Code:</label>
+            <input type="password" class="form-control" [(ngModel)]="password" id="password" placeholder="Enter Internet Code"
+              name="password">
+          </div>
+          <button (click)=handleLogin() class="btn btn-success">Login</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+################login component.ts###########
+
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
+import { GiftCardServiceService } from '../gift-card-service.service';
+import { AuthenticationService } from './auth.service';
+
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit {
+  
+  username: string;
+  password : string;
+  errorMessage = 'Invalid Credentials';
+  successMessage: string;
+  invalidLogin = false;
+  loginSuccess = false;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private authenticationService: AuthenticationService) {   }
+
+    ngOnInit() {
+    }
+  
+    handleLogin() {
+      this.authenticationService.authenticationService(this.username, this.password).subscribe((result)=> {
+        this.invalidLogin = false;
+        this.loginSuccess = true;
+        this.successMessage = 'Login Successful.';
+        this.router.navigate(['/home']);
+      }, () => {
+        this.invalidLogin = true;
+        this.loginSuccess = false;
+      });      
+    }
+  }
+
+
+
+
+
+###############auth service.ts##############
+
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { map } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthenticationService {
+
+  // BASE_PATH: 'http://localhost:8080'
+  USER_NAME_SESSION_ATTRIBUTE_NAME = 'authenticatedUser'
+
+  public username: String;
+  public password: String;
+
+  constructor(private http: HttpClient) {
+
+  }
+
+  authenticationService(username: String, password: String) {
+    return this.http.get(`http://localhost:7878/GiftCardManagement/api/v1/basicauth`,
+      { headers: { authorization: this.createBasicAuthToken(username, password) } }).pipe(map((res) => {
+        this.username = username;
+        this.password = password;
+        this.registerSuccessfulLogin(username, password);
+      }));
+  }
+
+  createBasicAuthToken(username: String, password: String) {
+    return 'Basic ' + window.btoa(username + ":" + password)
+  }
+
+  registerSuccessfulLogin(username, password) {
+    sessionStorage.setItem(this.USER_NAME_SESSION_ATTRIBUTE_NAME, username);
+    this.isUserLoggedIn();
+  }
+
+  logout() {
+    sessionStorage.removeItem(this.USER_NAME_SESSION_ATTRIBUTE_NAME);
+    this.username = null;
+    this.password = null;
+  }
+
+  isUserLoggedIn() {
+    let user = sessionStorage.getItem(this.USER_NAME_SESSION_ATTRIBUTE_NAME)
+    if (user === null) return false
+    return true
+  }
+
+  getLoggedInUserName() {
+    let user = sessionStorage.getItem(this.USER_NAME_SESSION_ATTRIBUTE_NAME)
+    if (user === null) return ''
+    return user
+  }
+}
+
+
+
+##############home component.html##############
+
+<div class="panel panel-primary">
+    <br>
+    <br>
+    <h5>Crad Number:***********7878</h5>
+    <br>
+    <br>
+
+    <form class="form-group col-md-6 mb-3">
+       
+            
+        <div class="form-group">
+            <table class="table table-striped">
+                <thead>
+                  <tr>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>Activity For : </th>
+                    <td>
+            <select class="custom-select" required>
+              <option value="">Choose to filter transactions</option>
+              <option value="1">Last 50 transactions</option>
+              <option value="2">Current</option>
+              <option value="3">Select Dates</option>
+            </select>
+        </td>
+        <td>
+            <button  class="btn btn-success">View</button>
+        </td>
+           </tr>
+         </tbody>
+        </table>
+             </div>
+        
+    </form>
+
+    <br>
+
+    <div class="panel-heading">
+      <h2>Transaction List</h2>
+    </div>
+    <div class="panel-body">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>CreditedTo</th>
+            <th>TransactionTime</th>
+            <th>Amount</th>
+            <th>Currency</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let transaction of transactionList | async">
+            <td>{{transaction.CreditedTo}}</td>
+            <td>{{transaction.TransactionTime}}</td>
+            <td>{{transaction.Amount}}</td>
+            <td>{{transaction.Currency}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+
+
+
+
+#######################home component.ts########
+
+
+import { Component, OnInit } from '@angular/core';
+import { Observable } from "rxjs";
+import { Router } from '@angular/router';
+
+import { GiftCardServiceService } from '../gift-card-service.service';
+import{ CardUser} from '../card-user';
+import{AuthenticationService} from '../login/auth.service';
+import {LogoutComponent} from '../logout/logout.component'
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
+})
+export class HomeComponent implements OnInit {
+
+  transactionList :Observable<CardUser []>;
+ 
+
+  constructor(private giftCardService: GiftCardServiceService ,
+    private router: Router,
+    private authenticationService: AuthenticationService) { }
+
+  ngOnInit() {
+  this.reTransactionData();
+ 
+  
+  }
+
+  reTransactionData(){
+    this.transactionList=this.giftCardService.getTransactionList();
+  }
+
+}
+
+
+
+##############http-interceptor.service.ts ##########
+
+
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpHeaders } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AuthenticationService } from './login/auth.service';
+
+@Injectable()
+export class HttpInterceptorService implements HttpInterceptor {
+
+    constructor(private authenticationService: AuthenticationService) { }
+
+    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        if (this.authenticationService.isUserLoggedIn() && req.url.indexOf('basicauth') === -1) {
+            const authReq = req.clone({
+                headers: new HttpHeaders({
+                    'Content-Type': 'application/json',
+                    'Authorization': `Basic ${window.btoa(this.authenticationService.username + ":" + this.authenticationService.password)}`
+                })
+            });
+            return next.handle(authReq);
+        } else {
+            return next.handle(req);
+        }
+    }
+}
+
+
+
