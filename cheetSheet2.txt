@@ -1,0 +1,131 @@
+############GiftCardService.ts
+
+  getTransactionLastFiftyList() : Observable<any>{
+    return this.http.get('http://localhost:7878/GiftCardManagement/api/v1/LastFiftyTransactions');
+  }
+  getCurrentTransactions() : Observable<any>{
+    return this.http.get('http://localhost:7878/GiftCardManagement/api/v1/CurrentTransactions');
+  }
+
+
+
+
+
+
+####################Homecomponent.ts
+
+ngOnInit() {
+  this.getAllTransactionData();
+  }
+
+  getAllTransactionData(){
+    this.transactionList=this.giftCardService.getTransactionList();
+  }
+
+LastFiftyTransactions(){
+  this.transactionList=this.giftCardService.getTransactionLastFiftyList();
+}
+
+FilterSelected:number;
+selectChangeHandler (event: any) {
+  //update the LastFiftyTransactions
+  this.FilterSelected = event.target.value;
+  if(this.FilterSelected==1) {  
+    this.transactionList=this.giftCardService.getTransactionLastFiftyList();
+ }
+ if(this.FilterSelected==2){
+  this.transactionList=this.giftCardService.getCurrentTransactions();
+ }
+
+}
+
+
+printPage() {
+  window.print();
+}
+
+
+
+
+
+
+
+################HomeComponent.html
+
+
+
+
+<div class="panel panel-primary">
+    <br>
+    <br>
+    <h5>Crad Number:***********7878</h5>
+    <br>
+    <br>
+
+    <form class="form-group col-md-6 mb-3">
+       
+            
+        <div class="form-group">
+            <table class="table table-striped">
+                <thead>
+                  <tr>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>Activity For : </th>
+                    <td>
+            <select class="custom-select" required>
+              <option value="">Choose to filter transactions</option>
+              <option value="LastFiftyTransactions">Last 50 transactions</option>
+              <option value="2">Current</option>
+              <option value="3">Select Dates</option>
+            </select>
+        </td>
+        <td>
+            <button  class="btn btn-success">View</button>
+        </td>
+           </tr>
+           <tr>
+            <select (change)="selectChangeHandler($event)">
+              <option value="1">Last 50 transactions</option>
+              <option value="2">Current</option>
+              
+          </select>
+           </tr>
+
+           
+         </tbody>
+        </table>
+             </div>
+        
+    </form>
+
+    <br>
+
+    <div class="panel-heading">
+      <h2>Transaction List        <button class="btn btn-success float-right" (click)="printPage()">print</button></h2>
+    </div>
+    <div class="panel-body">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>CreditedTo</th>
+            <th>TransactionTime</th>
+            <th>Amount</th>
+            <th>Currency</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let transaction of transactionList | async">
+            <td>{{transaction.CreditedTo}}</td>
+            <td>{{transaction.TransactionTime}}</td>
+            <td>{{transaction.Amount}}</td>
+            <td>{{transaction.Currency}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
